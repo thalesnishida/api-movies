@@ -1,94 +1,73 @@
-const { hash, compare } =  require("bcryptjs");
+const { hash, compare } = require("bcryptjs");
 const knex = require("../database/knex");
-const AppError = require("../Utils/AppError");
+const AppError = require("../utils/AppError");
 
-class UserController{
-  async create(request, response){
+class UserController {
+  async create(request, response) {
     const { name, email, password } = request.body;
+
+    if (!name || !email || !password) {
+      throw new AppError("Digite todos os campos!");
+    }
 
     const user = await knex("users").where({ email }).first();
 
-    if(user){
-      throw new AppError("Usuário ja existe!");
+    if (user) {
+      throw new AppError("Usuario encontrado");
     }
 
-    const hashedPassword =  await hash(password, 8);
+    const hashPassword = await hash(password, 10);
 
     await knex("users").insert({
       name,
       email,
-      password: hashedPassword
-    })
-  
+      password: hashPassword,
+    });
 
     return response.status(201).json();
   }
 
-  async update(request, response){
+  async update(request, response) {
     const { name, email, old_password, password } = request.body;
-    const { id } = request.params;
+    const user_id = request.user.id;
 
-    const user = await knex("users").where({ id: id }).select();
+    const user = await knex("users").where({ id: user_id }).first();
 
-    if(user == ""){
-      throw new AppError("Usuário não encontrado")
+    if (!user) {
+      throw new AppError("Usuário não encontrado");
     }
 
-    if(name || email ){
-      const emailNameBefore = user.map( item => {
-        return item['name'];
-      });
+    const userWithUpdateEmail = await knex("users").where({ email }).first();
 
-      console.log(emailNameBefore)
-
-      const userWithEmail = await knex("users").where('email', email ?? emailNameBefore);
-      
-      console.log(userWithEmail)
-      
-      userWithEmail.map(all => {
-        
-        if(all && all['id'] !== id){
-          throw new AppError("Email ja esta em uso!")
-        };
-        
-        all['name'] = name ?? all['name'];
-        all['email'] = email ?? all['email'];
-        
-        console.log(all['id'], all['email'])
-        console.log(id, email)
-      });
-
-      await knex("users").where("id", id).update({
-        name,
-        email
-      })
-    }
-    
-   
-    if(password && !old_password){
-      throw new AppError("Voce perecisa digitar a senha antiga para atualiza nova senha!")
+    if (userWithUpdateEmail && userWithUpdateEmail.id !== user.id) {
+      throw new AppError("Este email ja esta em uso!");
     }
 
-    if(password && old_password){
-      const pad = user.map(p => {
-        return p['password'];
-      })
-      
-      const chekPassword = await compare(old_password, pad.toString());
-  
-      if(!chekPassword){
-        throw new AppError("Senha antiga nao confere!");
+    user.name = name ?? user.name;
+    user.email = email ?? user.email;
+
+    if (password && !old_password) {
+      throw new AppError("Você precisa digitar a senha antiga!");
+    }
+
+    await knex("users").where({ id: user_id }).update({
+      name,
+      email,
+    });
+
+    if (password && old_password) {
+      const checkPasswordMatch = await compare(old_password, user.password);
+
+      if (!checkPasswordMatch) {
+        throw new AppError("Senha antiga não confere!");
       }
-      
-      const passwordH = await hash(password, 8);
 
-      console.log(passwordH)
-      
-      await knex("users").where("id", id).update({
-        password: passwordH
-      })
+      const hashNewPassword = await hash(password, 8);
+
+      await knex("users").where({ id: user_id }).update({
+        password: hashNewPassword,
+      });
     }
-    
 
     return response.status(201).json();
   }
