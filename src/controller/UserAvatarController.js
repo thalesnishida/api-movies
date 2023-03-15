@@ -1,25 +1,27 @@
 const knex = require("../database/knex");
-const DiskStorage = require("../providers/DiskStorage");
 const AppError = require("../utils/AppError");
+const DiskSorage = require("../providers/DiskStorage");
 
 class UserAvatarController {
   async update(request, response) {
     const user_id = request.user.id;
     const avatarFileName = request.file.filename;
-    console.log(avatarFileName);
-    const diskStorage = new DiskStorage();
+
+    const diskSorage = new DiskSorage();
 
     const user = await knex("users").where({ id: user_id }).first();
 
     if (!user) {
-      throw new AppError("Somente usuário autenticadi pode autualizar a foto!");
+      throw new AppError(
+        "Someento usuário autenticado pode atualizar o avatar"
+      );
     }
 
     if (user.avatar) {
-      await diskStorage.deleteFile(user.avatar);
+      await diskSorage.deleteFile(user.avatar);
     }
 
-    const fileName = await diskStorage.saveFile(avatarFileName);
+    const fileName = await diskSorage.saveFile(avatarFileName);
     user.avatar = fileName;
 
     await knex("users").update(user).where({ id: user_id });

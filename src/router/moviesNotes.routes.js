@@ -8,7 +8,7 @@ const notesMoviesController = new NotesMoviesController();
 notesRoute.use(ensureAuthenticated);
 
 notesRoute.get("/", notesMoviesController.index);
-notesRoute.post("/:user_id", notesMoviesController.create);
+notesRoute.post("/", notesMoviesController.create);
 notesRoute.get("/:user_id", notesMoviesController.show);
 notesRoute.delete("/:id", notesMoviesController.delete);
 
