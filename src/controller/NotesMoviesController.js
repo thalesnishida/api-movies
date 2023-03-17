@@ -26,7 +26,8 @@ class NotesMoviesController {
   }
 
   async index(request, response) {
-    const { user_id, title, tags } = request.query;
+    const { title, tags } = request.query;
+    const user_id = request.user.id;
 
     let notes;
 
@@ -65,10 +66,12 @@ class NotesMoviesController {
   }
 
   async show(request, response) {
-    const { user_id } = request.params;
+    const { id } = request.params;
 
-    const note = await knex("movies_notes").where("user_id", user_id).first();
-    const tag = await knex("movies_tags").where({ user_id }).orderBy("name");
+    const note = await knex("movies_notes").where({ id }).first();
+    const tag = await knex("movies_tags")
+      .where({ note_id: id })
+      .orderBy("name");
 
     return response.json({
       ...note,

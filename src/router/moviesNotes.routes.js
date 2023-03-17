@@ -9,7 +9,7 @@ notesRoute.use(ensureAuthenticated);
 
 notesRoute.get("/", notesMoviesController.index);
 notesRoute.post("/", notesMoviesController.create);
-notesRoute.get("/:user_id", notesMoviesController.show);
+notesRoute.get("/:id", notesMoviesController.show);
 notesRoute.delete("/:id", notesMoviesController.delete);
 
 module.exports = notesRoute;
