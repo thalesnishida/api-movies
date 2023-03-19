@@ -1,4 +1,6 @@
 require("express-async-errors");
+require("dotenv/config");
+
 const express = require("express");
 const cors = require("cors");
 
@@ -29,5 +31,5 @@ app.use((error, request, response, next) => {
     message: "Internal error server!",
   });
 });
-const PORT = 3333;
+const PORT = process.env.PORT || 3333;
 app.listen(PORT, () => console.log(`Server is running on PORT ${PORT}`));
