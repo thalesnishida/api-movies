@@ -12,7 +12,7 @@ const MULTER = {
       const fileHash = crypto.randomBytes(10).toString("hex");
       const fileName = `${fileHash}-${file.originalname}`;
 
-      callback(null, fileName);
+      return callback(null, fileName);
     },
   }),
 };
